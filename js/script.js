@@ -70,7 +70,7 @@ const mainStage = new Stage("main-canvas");
 const stages = [trailsStage, mainStage];
 
 //随机文字烟花内容
-const randomWords = ["新年快乐", "2026", "万事如意", "平安喜乐"];
+const randomWords = ["新年快乐", "2026", "万事如意", "平安喜乐"，"马到成功"];
 const wordDotsMap = {};
 randomWords.forEach((word) => {
 	wordDotsMap[word] = MyMath.literalLattice(word, 3, "bold sans-serif", "90px");

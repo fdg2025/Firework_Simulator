@@ -141,7 +141,7 @@ const store = {
 				? "1.2" //配置文件头默认值(不必是int)
 				: "2", //手机默认
 			wordShell: true, //文字烟花 默认为开启 若不开启可修改为false
-			autoLaunch: false, //自动发射烟花
+			autoLaunch: true, //自动发射烟花
 			finale: true, //同时放更多烟花
 			skyLighting: SKY_LIGHT_NORMAL + "",
 			hideControls: IS_HEADER,

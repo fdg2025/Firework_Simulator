@@ -2157,7 +2157,7 @@ class Shell {
 		}
 
 		if (!this.disableWordd && store.state.config.wordShell) {
-			if (Math.random() < 0.1) {
+			if (Math.random() < 0.3) {
 				if (Math.random() < 0.5) {
 					createWordBurst(randomWord(), dotStarFactory, x, y);
 				}

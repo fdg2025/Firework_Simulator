@@ -376,6 +376,7 @@ const appNodes = {
 	pauseBtnSVG: ".pause-btn use",
 	soundBtn: ".sound-btn",
 	soundBtnSVG: ".sound-btn use",
+	audioHint: ".audio-hint",
 	shellType: ".shell-type",
 	shellTypeLabel: ".shell-type-label",
 	shellSize: ".shell-size", //烟花大小
@@ -412,6 +413,35 @@ const appNodes = {
 // Convert appNodes selectors to dom nodes
 Object.keys(appNodes).forEach((key) => {
 	appNodes[key] = document.querySelector(appNodes[key]);
+});
+
+const audioUnlockState = {
+	unlocked: false,
+	requested: false,
+};
+
+function updateAudioHint() {
+	if (!appNodes.audioHint) return;
+	const shouldShow = soundEnabledSelector() && !audioUnlockState.unlocked && soundManager.ctx.state !== "running";
+	appNodes.audioHint.classList.toggle("hide", !shouldShow);
+}
+
+function requestAudioUnlock() {
+	if (audioUnlockState.unlocked || audioUnlockState.requested) return;
+	if (!soundEnabledSelector()) return;
+	audioUnlockState.requested = true;
+	soundManager.resumeAll();
+	setTimeout(() => {
+		if (soundManager.ctx.state === "running") {
+			audioUnlockState.unlocked = true;
+		}
+		audioUnlockState.requested = false;
+		updateAudioHint();
+	}, 400);
+}
+
+["pointerdown", "touchend", "click"].forEach((eventName) => {
+	document.addEventListener(eventName, requestAudioUnlock, { passive: true });
 });
 
 // Remove fullscreen control if not supported.
@@ -451,6 +481,8 @@ function renderApp(state) {
 		appNodes.helpModalHeader.textContent = header;
 		appNodes.helpModalBody.textContent = body;
 	}
+
+	updateAudioHint();
 }
 
 store.subscribe(renderApp);
@@ -466,6 +498,7 @@ function handleStateChange(state, prevState) {
 		} else {
 			soundManager.pauseAll();
 		}
+		updateAudioHint();
 	}
 }
 

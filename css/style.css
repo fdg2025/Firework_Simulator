@@ -47,6 +47,8 @@ body {
 	font-family: "Russo One", arial, sans-serif;
 	line-height: 1.25;
 	letter-spacing: 0.06em;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .hide {
@@ -82,6 +84,22 @@ body {
 	margin-top: 1em;
 	font-size: 0.8em;
 	opacity: 0.75;
+}
+
+.audio-hint {
+	position: absolute;
+	left: 50%;
+	bottom: calc(16px + env(safe-area-inset-bottom));
+	transform: translateX(-50%);
+	padding: 8px 14px;
+	border-radius: 999px;
+	font-size: 0.85em;
+	letter-spacing: 0.02em;
+	color: rgba(255, 255, 255, 0.85);
+	background: rgba(0, 0, 0, 0.55);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	pointer-events: none;
+	z-index: 5;
 }
 
 .stage-container {

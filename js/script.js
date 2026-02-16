@@ -29,6 +29,7 @@ const MAX_WIDTH = 7680;
 const MAX_HEIGHT = 4320;
 const GRAVITY = 0.9; //以像素/秒为单位的加速度
 let simSpeed = 1;
+let introSequencePlayed = false;
 
 function getDefaultScaleFactor() {
 	if (IS_MOBILE) return 0.9;
@@ -920,8 +921,8 @@ function init() {
 		[0.5, 0.62, 0.75, 0.9, 1.0, 1.5, 2.0].map((value) => ({ value: value.toFixed(2), label: `${value * 100}%` }))
 	);
 
-	// Begin simulation
-	togglePause(false);
+	// Begin simulation on the next frame to ensure layout is stable
+	requestAnimationFrame(() => togglePause(false));
 
 	// initial render
 	renderApp(store.state);
@@ -929,6 +930,17 @@ function init() {
 
 	// Apply initial config
 	configDidUpdate();
+	// Play a short intro sequence for first-time visitors
+	scheduleIntroSequence();
+}
+
+function scheduleIntroSequence() {
+	if (introSequencePlayed || IS_HEADER) return;
+	introSequencePlayed = true;
+	setTimeout(() => {
+		if (!isRunning()) return;
+		seqTwoRandom();
+	}, 1200);
 }
 
 function fitShellPositionInBoundsH(position) {

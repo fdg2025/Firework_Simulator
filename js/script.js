@@ -7,6 +7,11 @@
 const IS_MOBILE = window.innerWidth <= 640;
 const IS_DESKTOP = window.innerWidth > 800;
 const IS_HEADER = IS_DESKTOP && window.innerHeight < 300;
+const IS_LOW_END_DEVICE = (() => {
+	const memory = navigator.deviceMemory || 4;
+	const cores = navigator.hardwareConcurrency || 4;
+	return IS_MOBILE && (memory <= 3 || cores <= 4);
+})();
 // Detect high end devices. This will be a moving target.
 const IS_HIGH_END_DEVICE = (() => {
 	const hwConcurrency = navigator.hardwareConcurrency;
@@ -228,6 +233,21 @@ if (!IS_HEADER) {
 	store.load();
 }
 
+const HAS_SAVED_CONFIG = (() => {
+	try {
+		return !!localStorage.getItem("cm_fireworks_data") || localStorage.getItem("schemaVersion") === "1";
+	} catch (error) {
+		return false;
+	}
+})();
+
+if (!HAS_SAVED_CONFIG && IS_LOW_END_DEVICE) {
+	store.state.config.quality = String(QUALITY_LOW);
+	store.state.config.skyLighting = SKY_LIGHT_DIM + "";
+	store.state.config.scaleFactor = Math.min(store.state.config.scaleFactor, 0.85);
+	store.state.config.finale = false;
+}
+
 // Actions
 // ---------
 
@@ -250,6 +270,9 @@ function toggleSound(toggle) {
 		store.setState({ soundEnabled: toggle });
 	} else {
 		store.setState({ soundEnabled: !store.state.soundEnabled });
+	}
+	if (store.state.soundEnabled) {
+		soundManager.ensurePreloaded();
 	}
 }
 
@@ -377,6 +400,7 @@ const appNodes = {
 	soundBtn: ".sound-btn",
 	soundBtnSVG: ".sound-btn use",
 	audioHint: ".audio-hint",
+	tapHint: ".tap-hint",
 	shellType: ".shell-type",
 	shellTypeLabel: ".shell-type-label",
 	shellSize: ".shell-size", //烟花大小
@@ -420,6 +444,16 @@ const audioUnlockState = {
 	requested: false,
 };
 
+const tapHintState = {
+	hidden: false,
+};
+
+function hideTapHint() {
+	if (!appNodes.tapHint || tapHintState.hidden) return;
+	appNodes.tapHint.classList.add("hide");
+	tapHintState.hidden = true;
+}
+
 function updateAudioHint() {
 	if (!appNodes.audioHint) return;
 	const shouldShow = soundEnabledSelector() && !audioUnlockState.unlocked && soundManager.ctx.state !== "running";
@@ -430,6 +464,7 @@ function requestAudioUnlock() {
 	if (audioUnlockState.unlocked || audioUnlockState.requested) return;
 	if (!soundEnabledSelector()) return;
 	audioUnlockState.requested = true;
+	soundManager.ensurePreloaded();
 	soundManager.resumeAll();
 	setTimeout(() => {
 		if (soundManager.ctx.state === "running") {
@@ -890,6 +925,7 @@ function init() {
 
 	// initial render
 	renderApp(store.state);
+	setTimeout(hideTapHint, 3500);
 
 	// Apply initial config
 	configDidUpdate();
@@ -1148,6 +1184,7 @@ let isUpdatingSpeed = false;
 
 function handlePointerStart(event) {
 	activePointerCount++;
+	hideTapHint();
 	const btnSize = 50;
 
 	if (event.y < btnSize) {
@@ -2428,6 +2465,7 @@ const Spark = {
 const soundManager = {
 	baseURL: "./audio/",
 	ctx: new (window.AudioContext || window.webkitAudioContext)(),
+	_preloadPromise: null,
 	sources: {
 		lift: {
 			volume: 1,
@@ -2503,6 +2541,15 @@ const soundManager = {
 		return Promise.all(allFilePromises);
 	},
 
+	ensurePreloaded() {
+		if (this._preloadPromise) return this._preloadPromise;
+		this._preloadPromise = this.preload().catch((error) => {
+			console.log("音效预加载失败");
+			return Promise.reject(error);
+		});
+		return this._preloadPromise;
+	},
+
 	pauseAll() {
 		this.ctx.suspend();
 	},
@@ -2559,6 +2606,10 @@ const soundManager = {
 		if (!source) {
 			throw new Error(`Sound of type "${type}" doesn't exist.`);
 		}
+		if (!source.buffers || !source.buffers.length) {
+			this.ensurePreloaded();
+			return;
+		}
 
 		const initialVolume = source.volume;
 		const initialPlaybackRate = MyMath.random(source.playbackRateMin, source.playbackRateMax);
@@ -2601,14 +2652,13 @@ if (IS_HEADER) {
 	// Allow status to render, then preload assets and start app.
 	setLoadingStatus("正在点燃导火线");
 	setTimeout(() => {
-		// 只加载 soundManager
-		var promises = [soundManager.preload()];
-
-		// 在 soundManager 加载完毕后调用 init
-		Promise.all(promises).then(init, (reason) => {
-			console.log("资源文件加载失败");
-			init();
-			return Promise.reject(reason);
-		});
+		init();
+		if (soundEnabledSelector()) {
+			if ("requestIdleCallback" in window) {
+				requestIdleCallback(() => soundManager.ensurePreloaded());
+			} else {
+				setTimeout(() => soundManager.ensurePreloaded(), 1500);
+			}
+		}
 	}, 0);
 }

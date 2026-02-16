@@ -1209,8 +1209,9 @@ window.addEventListener("keydown", handleKeydown);
 
 // Account for window resize and custom scale changes.
 function handleResize() {
-	const w = window.innerWidth;
-	const h = window.innerHeight;
+	const viewport = window.visualViewport;
+	const w = viewport ? viewport.width : window.innerWidth;
+	const h = viewport ? viewport.height : window.innerHeight;
 	// Try to adopt screen size, heeding maximum sizes specified
 	const containerW = Math.min(w, MAX_WIDTH);
 	// On small screens, use full device height
@@ -1228,6 +1229,9 @@ function handleResize() {
 handleResize();
 
 window.addEventListener("resize", handleResize);
+if (window.visualViewport) {
+	window.visualViewport.addEventListener("resize", handleResize);
+}
 
 // Dynamic globals
 let currentFrame = 0;

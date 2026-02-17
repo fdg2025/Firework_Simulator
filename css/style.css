@@ -484,10 +484,12 @@ body {
 	display: none;
 	align-items: center;
 	justify-content: center;
+	pointer-events: none;
 }
 
 .share-panel--open {
 	display: flex;
+	pointer-events: all;
 }
 
 .share-overlay {
@@ -646,6 +648,7 @@ body {
 	z-index: 10001;
 	opacity: 0;
 	transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+	pointer-events: none;
 }
 
 .share-feedback--success {

@@ -78,6 +78,9 @@ const stages = [trailsStage, mainStage];
 //随机文字烟花内容
 const randomWords = ["新年快乐", "2026", "万事如意", "平安喜乐", "马到成功"];
 const wordDotsMap = {};
+const wordDotsCache = new Map();
+const WORD_DOTS_CACHE_MAX = 40;
+const WORD_FONT_STEP = 6;
 randomWords.forEach((word) => {
 	wordDotsMap[word] = MyMath.literalLattice(word, 3, "bold sans-serif", "90px");
 });
@@ -308,6 +311,17 @@ function configDidUpdate() {
 	}
 
 	Spark.drawWidth = quality === QUALITY_HIGH ? 0.75 : 1;
+}
+
+function preallocateParticlePools() {
+	const targetStarCount = isHighQuality ? 1200 : isNormalQuality ? 700 : 400;
+	const targetSparkCount = isHighQuality ? 1800 : isNormalQuality ? 1000 : 600;
+	if (Star._pool.length < targetStarCount) {
+		Star.preallocate(targetStarCount - Star._pool.length);
+	}
+	if (Spark._pool.length < targetSparkCount) {
+		Spark.preallocate(targetSparkCount - Spark._pool.length);
+	}
 }
 
 // Selectors
@@ -994,6 +1008,7 @@ function init() {
 
 	// Apply initial config
 	configDidUpdate();
+	preallocateParticlePools();
 	// Play a short intro sequence for first-time visitors
 	scheduleIntroSequence();
 }
@@ -1867,16 +1882,20 @@ function createParticleArc(start, arcLength, count, randomness, particleFactory)
 //获取字体点阵信息
 function getWordDots(word) {
 	if (!word) return null;
-	// var res = wordDotsMap[word];
-	// if (!res) {
-	//     wordDotsMap[word] = MyMath.literalLattice(word);
-	//     res = wordDotsMap[word];
-	// }
-
 	//随机字体大小 60~130
-	var fontSize = Math.floor(Math.random() * 70 + 60);
+	let fontSize = Math.floor(Math.random() * 70 + 60);
+	fontSize = Math.round(fontSize / WORD_FONT_STEP) * WORD_FONT_STEP;
+	const cacheKey = `${word}|${fontSize}`;
+	if (wordDotsCache.has(cacheKey)) {
+		return wordDotsCache.get(cacheKey);
+	}
 
-	var res = MyMath.literalLattice(word, 3, "bold sans-serif", fontSize + "px");
+	const res = MyMath.literalLattice(word, 3, "bold sans-serif", fontSize + "px");
+	wordDotsCache.set(cacheKey, res);
+	if (wordDotsCache.size > WORD_DOTS_CACHE_MAX) {
+		const oldestKey = wordDotsCache.keys().next().value;
+		wordDotsCache.delete(oldestKey);
+	}
 
 	return res;
 }
@@ -2273,7 +2292,10 @@ class Shell {
 			}
 
 			//文字尾影
-			Spark.add(point.x + 5, point.y + 10, color, Math.random() * 2 * Math.PI, Math.pow(Math.random(), 0.05) * 0.4, this.starLife + Math.random() * this.starLife * this.starLifeVariation + 2000);
+			const tailChance = perfTuning.enabled ? perfTuning.scale : 1;
+			if (Math.random() < tailChance) {
+				Spark.add(point.x + 5, point.y + 10, color, Math.random() * 2 * Math.PI, Math.pow(Math.random(), 0.05) * 0.4, this.starLife + Math.random() * this.starLife * this.starLifeVariation + 2000);
+			}
 		};
 
 		if (typeof this.color === "string") {
@@ -2464,6 +2486,12 @@ const Star = {
 		return {};
 	},
 
+	preallocate(count) {
+		for (let i = 0; i < count; i++) {
+			this._pool.push(this._new());
+		}
+	},
+
 	add(x, y, color, angle, speed, life, speedOffX, speedOffY, size = 3) {
 		const instance = this._pool.pop() || this._new();
 		instance.visible = true;
@@ -2549,6 +2577,12 @@ const Spark = {
 
 	_new() {
 		return {};
+	},
+
+	preallocate(count) {
+		for (let i = 0; i < count; i++) {
+			this._pool.push(this._new());
+		}
 	},
 
 	add(x, y, color, angle, speed, life) {
@@ -2708,7 +2742,9 @@ const soundManager = {
 		// Throttle small bursts, since floral/falling leaves shells have a lot of them.
 		if (type === "burstSmall") {
 			const now = Date.now();
-			if (now - this._lastSmallBurstTime < 20) {
+			const scale = perfTuning.enabled ? Math.max(perfTuning.scale, 0.5) : 1;
+			const minInterval = Math.round(20 / scale);
+			if (now - this._lastSmallBurstTime < minInterval) {
 				return;
 			}
 			this._lastSmallBurstTime = now;

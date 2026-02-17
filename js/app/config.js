@@ -4,7 +4,6 @@
  */
 
 import { setColorScheme, getColorSchemeList } from './colors.js';
-import { store, appMode } from './state.js';
 
 /**
  * Configuration panel state

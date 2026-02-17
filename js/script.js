@@ -440,6 +440,69 @@ Object.keys(appNodes).forEach((key) => {
 	appNodes[key] = document.querySelector(appNodes[key]);
 });
 
+const debugMetrics = {
+	enabled: /(?:\?|&)debug=1(?:&|$)/.test(window.location.search),
+	overlay: null,
+	lastTime: 0,
+	frameCount: 0,
+	fps: 0,
+	stars: 0,
+	sparks: 0,
+};
+
+const perfTuning = {
+	enabled: true,
+	targetFps: 55,
+	minScale: 0.6,
+	maxScale: 1,
+	sampleMs: 500,
+	lastTime: 0,
+	frameCount: 0,
+	lastFps: 0,
+	scale: 1,
+};
+
+function setupDebugOverlay() {
+	if (!debugMetrics.enabled || debugMetrics.overlay) return;
+	const overlay = document.createElement("div");
+	overlay.style.position = "fixed";
+	overlay.style.top = "8px";
+	overlay.style.right = "8px";
+	overlay.style.zIndex = "9999";
+	overlay.style.padding = "6px 8px";
+	overlay.style.background = "rgba(0, 0, 0, 0.55)";
+	overlay.style.color = "#9efc9e";
+	overlay.style.font = "12px/1.3 monospace";
+	overlay.style.border = "1px solid rgba(255, 255, 255, 0.2)";
+	overlay.style.borderRadius = "4px";
+	overlay.textContent = "FPS: -- | Stars: -- | Sparks: --";
+	document.body.appendChild(overlay);
+	debugMetrics.overlay = overlay;
+	debugMetrics.lastTime = performance.now();
+}
+
+function updatePerfTuning() {
+	if (!perfTuning.enabled) return;
+	if (!perfTuning.lastTime) {
+		perfTuning.lastTime = performance.now();
+	}
+	perfTuning.frameCount++;
+	const now = performance.now();
+	const elapsed = now - perfTuning.lastTime;
+	if (elapsed < perfTuning.sampleMs) return;
+
+	const fps = (perfTuning.frameCount * 1000) / elapsed;
+	perfTuning.lastFps = fps;
+	perfTuning.frameCount = 0;
+	perfTuning.lastTime = now;
+
+	if (fps < perfTuning.targetFps - 5) {
+		perfTuning.scale = Math.max(perfTuning.minScale, perfTuning.scale - 0.05);
+	} else if (fps > perfTuning.targetFps + 5) {
+		perfTuning.scale = Math.min(perfTuning.maxScale, perfTuning.scale + 0.02);
+	}
+}
+
 const audioUnlockState = {
 	unlocked: false,
 	requested: false,
@@ -888,6 +951,7 @@ function init() {
 	// Remove loading state
 	document.querySelector(".loading-init").remove();
 	appNodes.stageContainer.classList.remove("remove");
+	setupDebugOverlay();
 
 	// Populate dropdowns
 	function setOptionsForSelect(node, options) {
@@ -1326,6 +1390,7 @@ function updateGlobals(timeStep, lag) {
 //帧绘制回调
 function update(frameTime, lag) {
 	if (!isRunning()) return;
+	updatePerfTuning();
 
 	const width = stageW;
 	const height = stageH;
@@ -1333,6 +1398,29 @@ function update(frameTime, lag) {
 	const speed = simSpeed * lag;
 
 	updateGlobals(timeStep, lag);
+	if (debugMetrics.enabled) {
+		debugMetrics.frameCount++;
+		const now = performance.now();
+		if (now - debugMetrics.lastTime >= 500) {
+			debugMetrics.fps = Math.round((debugMetrics.frameCount * 1000) / (now - debugMetrics.lastTime));
+			debugMetrics.frameCount = 0;
+			debugMetrics.lastTime = now;
+
+			let starCount = 0;
+			let sparkCount = 0;
+			for (let c = 0; c < COLOR_CODES.length; c++) {
+				const color = COLOR_CODES[c];
+				starCount += Star.active[color].length;
+				sparkCount += Spark.active[color].length;
+			}
+			debugMetrics.stars = starCount;
+			debugMetrics.sparks = sparkCount;
+			if (debugMetrics.overlay) {
+				const scaleLabel = perfTuning.enabled ? perfTuning.scale.toFixed(2) : "1.00";
+				debugMetrics.overlay.textContent = `FPS: ${debugMetrics.fps} | Stars: ${starCount} | Sparks: ${sparkCount} | Scale: ${scaleLabel}`;
+			}
+		}
+	}
 
 	const starDrag = 1 - (1 - Star.airDrag) * speed;
 	const starDragHeavy = 1 - (1 - Star.airDragHeavy) * speed;
@@ -1952,7 +2040,7 @@ class Shell {
 
 		// Set default starCount if needed, will be based on shell size and scale exponentially, like a sphere's surface area.
 		if (!this.starCount) {
-			const density = options.starDensity || 1;
+			const density = (options.starDensity || 1) * (perfTuning.enabled ? perfTuning.scale : 1);
 			const scaledSize = this.spreadSize / 54;
 			this.starCount = Math.max(6, scaledSize * scaledSize * density);
 		}
@@ -2093,8 +2181,8 @@ class Shell {
 			sparkLifeVariation = 3.8;
 		}
 
-		// Apply quality to spark count
-		sparkFreq = sparkFreq / quality;
+		// Apply quality to spark count and performance scale
+		sparkFreq = (sparkFreq / quality) / (perfTuning.enabled ? perfTuning.scale : 1);
 
 		// Star factory for primary burst, pistils, and streamers.
 		//星形工厂，用于生产初级爆破、雌蕊和流光。
@@ -2253,8 +2341,11 @@ class Shell {
 		}
 
 		if (!this.disableWord && store.state.config.wordShell) {
-			if (Math.random() < 0.15) {
-				if (Math.random() < 0.5) {
+			const scale = perfTuning.enabled ? perfTuning.scale : 1;
+			const wordChance = Math.max(0.05, 0.15 * scale);
+			const selectChance = Math.max(0.2, 0.5 * scale);
+			if (Math.random() < wordChance) {
+				if (Math.random() < selectChance) {
 					createWordBurst(randomWord(), dotStarFactory, x, y);
 				}
 			}

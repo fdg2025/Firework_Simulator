@@ -4,22 +4,75 @@ Live site: https://fireworks.xpy.me/
 
 A lightweight, no-build fireworks simulator built with Canvas and WebAudio. It runs as plain static files and uses ES modules.
 
-## Run locally
+## Features
 
-- Open index.html in a local server (recommended) or directly in a browser.
-- For a simple local server:
-  - Python: python3 -m http.server 8080
-  - Node: npx serve
+- 🎆 Realistic particle physics and animations
+- 🎨 Multiple shell types and color palettes
+- 🔊 WebAudio sound effects
+- 📱 Mobile and desktop support
+- ⚡ High-performance canvas rendering
+- 🎮 Interactive controls and auto-launch mode
 
-## Structure
+## Run Locally
 
-- index.html: App entry
-- css/: Styles
-- js/app/: App modules
-- js/Stage.js: Canvas stage + ticker
-- js/MyMath.js: Math helpers
-- js/fscreen.js: Fullscreen helper
+Open `index.html` in a local server (recommended) or directly in a browser.
 
-## Notes
+Simple local server options:
+```bash
+# Python
+python3 -m http.server 8080
 
-- Add ?debug=1 to the URL for the FPS/particle overlay.
+# Node.js
+npx serve
+
+# Using package.json script
+npm run dev
+```
+
+Then visit `http://localhost:8080`
+
+## Project Structure
+
+```
+├── index.html           # App entry point
+├── css/
+│   └── style.css       # Styles
+├── js/
+│   ├── app/            # Application modules
+│   │   ├── audio.js    # Sound manager
+│   │   ├── colors.js   # Color definitions
+│   │   ├── constants.js # App constants
+│   │   ├── input.js    # Input handlers
+│   │   ├── loop.js     # Main render loop
+│   │   ├── main.js     # App initialization
+│   │   ├── particles.js # Particle systems
+│   │   ├── perf.js     # Performance monitoring
+│   │   ├── shells.js   # Shell/firework logic
+│   │   ├── state.js    # State management
+│   │   ├── ui.js       # UI components
+│   │   └── words.js    # Text rendering
+│   ├── fscreen.js      # Fullscreen helper
+│   ├── MyMath.js       # Math utilities
+│   ├── Stage.js        # Canvas stage manager
+│   └── script.js       # Module entry
+├── audio/              # Sound files
+├── fonts/              # Custom fonts
+└── images/             # Image assets
+```
+
+## Development
+
+- **Debug mode**: Add `?debug=1` to the URL for FPS/particle overlay
+- **ES Modules**: All code uses native ES modules (no build step required)
+- **Performance**: Automatically adjusts quality based on device capabilities
+
+## Technologies
+
+- Vanilla JavaScript (ES6+)
+- Canvas API for rendering
+- Web Audio API for sound
+- CSS3 for UI
+
+## License
+
+MIT

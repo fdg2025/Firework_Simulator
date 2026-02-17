@@ -95,7 +95,7 @@ export const soundManager = {
 	ensurePreloaded() {
 		if (this._preloadPromise) return this._preloadPromise;
 		this._preloadPromise = this.preload().catch((error) => {
-			console.log("音效预加载失败");
+			console.warn("Audio preload failed:", error);
 			return Promise.reject(error);
 		});
 		return this._preloadPromise;

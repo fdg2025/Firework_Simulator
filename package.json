@@ -1,0 +1,24 @@
+{
+  "name": "firework-simulator",
+  "version": "2.0.0",
+  "description": "A lightweight, no-build fireworks simulator built with Canvas and WebAudio",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 8080",
+    "preview": "python3 -m http.server 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fdg2025/Firework_Simulator.git"
+  },
+  "keywords": [
+    "fireworks",
+    "canvas",
+    "webaudio",
+    "animation",
+    "particles"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}

@@ -60,15 +60,16 @@ export function createStore({ isFullscreen, isHeader, isLowEndDevice, isHighEndD
 					default:
 						throw new Error("version switch should be exhaustive");
 				}
-				console.log(`Loaded config (schema version ${schemaVersion})`);
+				if (window.location.search.includes("debug=1")) {
+					console.log(`Loaded config (schema version ${schemaVersion})`);
+				}
 			} else if (localStorage.getItem("schemaVersion") === "1") {
 				let size;
 				try {
 					const sizeRaw = localStorage.getItem("configSize");
 					size = typeof sizeRaw === "string" && JSON.parse(sizeRaw);
 				} catch (e) {
-					console.log("Recovered from error parsing saved config:");
-					console.error(e);
+					console.warn("Failed to parse legacy config, using defaults:", e);
 					return;
 				}
 				const sizeInt = parseInt(size, 10);

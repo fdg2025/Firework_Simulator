@@ -110,6 +110,22 @@ export function bindInput({
 				actions.toggleSound();
 				break;
 
+			case "c": // C - Open configuration panel
+				event.preventDefault();
+				if (window.configUI) {
+					window.configUI.openConfigPanel();
+					showKeyboardFeedback("打开设置");
+				}
+				break;
+
+			case "s": // S - Open share panel
+				event.preventDefault();
+				if (window.shareUI) {
+					window.shareUI.openSharePanel();
+					showKeyboardFeedback("打开分享");
+				}
+				break;
+
 			case "r": // R - Random mode
 				event.preventDefault();
 				const shellSelect = document.querySelector('select[name="shell"]');
@@ -188,7 +204,7 @@ export function bindInput({
 P - 暂停/继续
 M - 静音/取消静音
 F - 全屏
-A - 自动发射
+C - 打开设置S - 打开分享A - 自动发射
 R - 随机模式
 O - 打开菜单
 ESC - 关闭菜单

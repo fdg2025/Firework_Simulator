@@ -26,6 +26,8 @@ import { BurstFlash, Spark, Star } from "./particles.js";
 import { createShellSystem } from "./shells.js";
 import { createLoop } from "./loop.js";
 import { bindInput } from "./input.js";
+import * as configUI from "./config.js";
+import * as shareUI from "./share.js";
 
 let stageW;
 let stageH;
@@ -215,6 +217,16 @@ bindInput({
 	ui,
 	actions,
 });
+
+// Initialize configuration UI
+configUI.initConfigUI();
+// Make configUI available globally for keyboard shortcuts
+window.configUI = configUI;
+
+// Initialize share UI
+shareUI.initShareUI();
+// Make shareUI available globally for keyboard shortcuts
+window.shareUI = shareUI;
 
 function setLoadingStatus(status) {
 	document.querySelector(".loading-init__status").textContent = status;

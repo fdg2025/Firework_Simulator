@@ -1,6 +1,21 @@
 import { GRAVITY, PI_2, SKY_LIGHT_NONE } from "./constants.js";
 import { debugMetrics, perfTuning, updatePerfTuning } from "./perf.js";
 
+/**
+ * Creates the main render loop that updates and draws all particles
+ * @param {Object} params - Loop configuration
+ * @param {Object} params.mainStage - Main canvas stage
+ * @param {Object} params.trailsStage - Trails canvas stage
+ * @param {Object} params.store - Application state store
+ * @param {Object} params.selectorApi - State selectors
+ * @param {Function} params.getStageSize - Returns stage dimensions
+ * @param {Function} params.getQuality - Returns quality settings
+ * @param {Object} params.particles - Particle systems
+ * @param {Object} params.colors - Color utilities
+ * @param {Function} params.getAppNodes - Returns DOM nodes
+ * @param {Object} params.shellSystem - Shell/firework system
+ * @returns {Object} Loop control API
+ */
 export function createLoop({
 	mainStage,
 	trailsStage,

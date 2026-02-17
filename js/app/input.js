@@ -1,3 +1,11 @@
+/**
+ * Binds input handlers for mouse, touch, and keyboard interactions
+ * @param {Object} params - Input configuration
+ * @param {Object} params.mainStage - Main canvas stage
+ * @param {Object} params.selectorApi - State selector API
+ * @param {Object} params.loop - Main loop API
+ * @param {Object} params.shellSystem - Shell system API
+ */
 export function bindInput({
 	mainStage,
 	selectorApi,

@@ -1,5 +1,16 @@
 import { QUALITY_LOW, QUALITY_NORMAL, QUALITY_HIGH, SKY_LIGHT_DIM, SKY_LIGHT_NORMAL } from "./constants.js";
 
+/**
+ * Creates the application state store with configuration management
+ * @param {Object} params - Store configuration
+ * @param {Function} params.isFullscreen - Returns fullscreen state
+ * @param {Function} params.isHeader - Returns header visibility state
+ * @param {Function} params.isLowEndDevice - Returns low-end device detection
+ * @param {Function} params.isHighEndDevice - Returns high-end device detection
+ * @param {Function} params.isDesktop - Returns desktop device detection
+ * @param {Function} params.getDefaultScaleFactor - Returns default scale factor
+ * @returns {Object} State store with getters and setters
+ */
 export function createStore({ isFullscreen, isHeader, isLowEndDevice, isHighEndDevice, isDesktop, getDefaultScaleFactor }) {
 	const store = {
 		_listeners: new Set(),

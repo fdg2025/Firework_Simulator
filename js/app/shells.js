@@ -2,6 +2,21 @@ import { IS_DESKTOP, IS_HEADER, PI_2, PI_HALF } from "./constants.js";
 import { COLOR, INVISIBLE, makePistilColor, randomColor, whiteOrGold } from "./colors.js";
 import { perfTuning } from "./perf.js";
 
+/**
+ * Creates the shell/firework system that manages all firework launches and effects
+ * @param {Object} params - Configuration object
+ * @param {Object} params.selectors - State selectors
+ * @param {Function} params.getStageSize - Returns current stage dimensions
+ * @param {Function} params.getMainStageSize - Returns main stage dimensions
+ * @param {Function} params.isRunning - Returns whether simulation is running
+ * @param {Function} params.getQuality - Returns current quality settings
+ * @param {Object} params.particles - Particle systems (Star, Spark, BurstFlash)
+ * @param {Object} params.soundManager - Audio manager
+ * @param {Object} params.myMath - Math utilities
+ * @param {Function} params.randomWord - Returns random word for text shells
+ * @param {Function} params.getWordDots - Generates dots for word rendering
+ * @returns {Object} Shell system API
+ */
 export function createShellSystem({
 	selectors,
 	getStageSize,
@@ -17,6 +32,14 @@ export function createShellSystem({
 	const { Star, Spark, BurstFlash } = particles;
 	let introSequencePlayed = false;
 
+	/**
+	 * Creates particles in an arc pattern
+	 * @param {number} start - Starting angle in radians
+	 * @param {number} arcLength - Length of arc in radians
+	 * @param {number} count - Number of particles to create
+	 * @param {number} randomness - Randomness factor (0-1)
+	 * @param {Function} particleFactory - Function to create each particle
+	 */
 	function createParticleArc(start, arcLength, count, randomness, particleFactory) {
 		const angleDelta = arcLength / count;
 		const end = start + arcLength - angleDelta * 0.5;
@@ -32,6 +55,13 @@ export function createShellSystem({
 		}
 	}
 
+	/**
+	 * Creates a burst of particles in a spherical distribution
+	 * @param {number} count - Total number of particles
+	 * @param {Function} particleFactory - Function to create each particle
+	 * @param {number} [startAngle=0] - Starting angle offset
+	 * @param {number} [arcLength=PI_2] - Arc length (default full circle)
+	 */
 	function createBurst(count, particleFactory, startAngle = 0, arcLength = PI_2) {
 		const R = 0.5 * Math.sqrt(count / Math.PI);
 		const C = 2 * R * Math.PI;

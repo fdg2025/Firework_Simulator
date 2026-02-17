@@ -1,0 +1,44 @@
+{
+	"name": "赛博烟花模拟器",
+	"short_name": "烟花",
+	"description": "逼真的烟花模拟器 - 支持19种烟花效果",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#000000",
+	"background_color": "#000000",
+	"lang": "zh-CN",
+	"dir": "ltr",
+	"categories": ["entertainment", "games"],
+	"icons": [
+		{
+			"src": "./images/favicon.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "./images/favicon.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"screenshots": [
+		{
+			"src": "./images/og-cover.png",
+			"sizes": "1200x630",
+			"type": "image/png",
+			"label": "烟花模拟器主界面"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "发射烟花",
+			"short_name": "发射",
+			"description": "立即发射一个烟花",
+			"url": "/?launch=true"
+		}
+	]
+}

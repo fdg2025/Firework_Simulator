@@ -27,6 +27,18 @@
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
 		<meta name="theme-color" content="#000000" />
+		
+		<!-- PWA Manifest -->
+		<link rel="manifest" href="./manifest.json" />
+		
+		<!-- Preload critical resources -->
+		<link rel="preload" href="./fonts/css.css" as="style" />
+		<link rel="preload" href="./css/style.css" as="style" />
+		<link rel="modulepreload" href="./js/script.js" />
+		
+		<!-- DNS prefetch -->
+		<link rel="dns-prefetch" href="https://fireworks.xpy.me" />
+		
 		<link rel="shortcut icon" type="image/png" href="./images/favicon.png" />
 		<link rel="icon" type="image/png" href="./images/favicon.png" />
 		<link rel="apple-touch-icon-precomposed" href="./images/favicon.png" />

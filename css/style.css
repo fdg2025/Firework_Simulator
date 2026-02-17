@@ -694,3 +694,318 @@ body {
 		justify-content: center;
 	}
 }
+
+
+/* ===== Configuration Panel ===== */
+.config-panel {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 10000;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+
+.config-panel--open {
+	display: flex;
+	pointer-events: all;
+}
+
+.config-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(5px);
+	animation: fadeIn 0.3s ease-out;
+}
+
+.config-dialog {
+	position: relative;
+	width: 90%;
+	max-width: 600px;
+	max-height: 85vh;
+	background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 16px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+	overflow: hidden;
+	animation: slideInUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.config-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px;
+	background: rgba(0, 0, 0, 0.3);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-header h2 {
+	margin: 0;
+	font-size: 1.4em;
+	font-weight: 600;
+	color: #fff;
+	letter-spacing: 0.05em;
+}
+
+.config-close-btn {
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 2em;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s, transform 0.2s;
+}
+
+.config-close-btn:hover {
+	color: #fff;
+	transform: rotate(90deg);
+}
+
+.config-body {
+	padding: 20px 24px;
+	overflow-y: auto;
+	max-height: calc(85vh - 160px);
+}
+
+.config-section {
+	margin-bottom: 28px;
+}
+
+.config-section:last-child {
+	margin-bottom: 0;
+}
+
+.config-section h3 {
+	margin: 0 0 16px 0;
+	font-size: 1.1em;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.9);
+	letter-spacing: 0.05em;
+	border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+	padding-bottom: 8px;
+}
+
+.config-group {
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.config-group label {
+	color: rgba(255, 255, 255, 0.85);
+	font-size: 0.95em;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.config-select {
+	width: 100%;
+	padding: 10px 12px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 6px;
+	color: #fff;
+	font-size: 0.95em;
+	cursor: pointer;
+	transition: border-color 0.2s, background 0.2s;
+}
+
+.config-select:hover {
+	border-color: rgba(255, 255, 255, 0.4);
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.config-select:focus {
+	outline: none;
+	border-color: #4a9eff;
+	box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+}
+
+.config-group input[type="range"] {
+	width: 100%;
+	height: 6px;
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
+	outline: none;
+	-webkit-appearance: none;
+}
+
+.config-group input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 18px;
+	height: 18px;
+	background: #4a9eff;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.config-group input[type="range"]::-webkit-slider-thumb:hover {
+	transform: scale(1.2);
+	box-shadow: 0 3px 10px rgba(74, 158, 255, 0.5);
+}
+
+.config-group input[type="range"]::-moz-range-thumb {
+	width: 18px;
+	height: 18px;
+	background: #4a9eff;
+	border-radius: 50%;
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.config-group input[type="range"]::-moz-range-thumb:hover {
+	transform: scale(1.2);
+	box-shadow: 0 3px 10px rgba(74, 158, 255, 0.5);
+}
+
+.config-group input[type="checkbox"] {
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+	accent-color: #4a9eff;
+}
+
+.config-value {
+	align-self: flex-end;
+	color: #4a9eff;
+	font-weight: 600;
+	font-size: 0.9em;
+	min-width: 50px;
+	text-align: right;
+}
+
+.color-preview {
+	display: flex;
+	gap: 8px;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 8px;
+	flex-wrap: wrap;
+}
+
+.color-dot {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+	transition: transform 0.2s;
+}
+
+.color-dot:hover {
+	transform: scale(1.15);
+}
+
+.config-footer {
+	display: flex;
+	gap: 12px;
+	padding: 16px 24px;
+	background: rgba(0, 0, 0, 0.3);
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-reset-btn,
+.config-apply-btn {
+	flex: 1;
+	padding: 12px 24px;
+	border: none;
+	border-radius: 8px;
+	font-size: 1em;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.config-reset-btn {
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.config-reset-btn:hover {
+	background: rgba(255, 255, 255, 0.15);
+	color: #fff;
+	transform: translateY(-2px);
+}
+
+.config-apply-btn {
+	background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
+	color: #fff;
+	box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+}
+
+.config-apply-btn:hover {
+	box-shadow: 0 6px 16px rgba(74, 158, 255, 0.4);
+	transform: translateY(-2px);
+}
+
+.config-feedback {
+	position: fixed;
+	bottom: 30px;
+	left: 50%;
+	transform: translateX(-50%) translateY(100px);
+	padding: 14px 28px;
+	background: rgba(74, 158, 255, 0.95);
+	color: #fff;
+	border-radius: 30px;
+	font-weight: 600;
+	font-size: 1em;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	z-index: 10001;
+	opacity: 0;
+	transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+	pointer-events: none;
+}
+
+.config-feedback--show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 640px) {
+	.config-dialog {
+		width: 95%;
+		max-height: 90vh;
+	}
+	
+	.config-header h2 {
+		font-size: 1.2em;
+	}
+	
+	.config-body {
+		padding: 16px;
+		max-height: calc(90vh - 140px);
+	}
+	
+	.config-footer {
+		flex-direction: column;
+	}
+	
+	.config-reset-btn,
+	.config-apply-btn {
+		width: 100%;
+	}
+}

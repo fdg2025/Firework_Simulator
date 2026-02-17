@@ -125,5 +125,7 @@ const MyMath = (function MyMathFactory(Math) {
 		};
 	};
 
-	return MyMath;
+return MyMath;
 })(Math);
+
+export { MyMath };

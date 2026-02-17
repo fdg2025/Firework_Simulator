@@ -359,5 +359,7 @@ const Stage = (function StageFactory(window, document, Ticker) {
 	document.addEventListener("touchmove", Stage.touchHandler);
 	document.addEventListener("touchend", Stage.touchHandler);
 
-	return Stage;
+return Stage;
 })(window, document, Ticker);
+
+export { Stage, Ticker };

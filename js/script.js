@@ -1,3 +1,10 @@
+import { fscreen } from "./fscreen.js";
+import { Stage } from "./Stage.js";
+import { MyMath } from "./MyMath.js";
+import { soundManager, bindSoundState } from "./app/audio.js";
+import { debugMetrics, perfTuning, setupDebugOverlay, updatePerfTuning } from "./app/perf.js";
+import { randomWord, getWordDots } from "./app/words.js";
+
 "use strict";
 
 //这是一个从简单项目开始的典型例子
@@ -76,14 +83,6 @@ const mainStage = new Stage("main-canvas");
 const stages = [trailsStage, mainStage];
 
 //随机文字烟花内容
-const randomWords = ["新年快乐", "2026", "万事如意", "平安喜乐", "马到成功"];
-const wordDotsMap = {};
-const wordDotsCache = new Map();
-const WORD_DOTS_CACHE_MAX = 40;
-const WORD_FONT_STEP = 6;
-randomWords.forEach((word) => {
-	wordDotsMap[word] = MyMath.literalLattice(word, 3, "bold sans-serif", "90px");
-});
 
 // 自定义背景
 document.addEventListener("DOMContentLoaded", function () {
@@ -341,6 +340,11 @@ const finaleSelector = () => store.state.config.finale;
 const skyLightingSelector = () => +store.state.config.skyLighting;
 const scaleFactorSelector = () => store.state.config.scaleFactor;
 
+bindSoundState({
+	canPlaySoundSelector: () => canPlaySoundSelector(),
+	getSimSpeedValue: () => simSpeed,
+});
+
 // Help Content
 const helpContent = {
 	shellType: {
@@ -454,68 +458,6 @@ Object.keys(appNodes).forEach((key) => {
 	appNodes[key] = document.querySelector(appNodes[key]);
 });
 
-const debugMetrics = {
-	enabled: /(?:\?|&)debug=1(?:&|$)/.test(window.location.search),
-	overlay: null,
-	lastTime: 0,
-	frameCount: 0,
-	fps: 0,
-	stars: 0,
-	sparks: 0,
-};
-
-const perfTuning = {
-	enabled: true,
-	targetFps: 55,
-	minScale: 0.6,
-	maxScale: 1,
-	sampleMs: 500,
-	lastTime: 0,
-	frameCount: 0,
-	lastFps: 0,
-	scale: 1,
-};
-
-function setupDebugOverlay() {
-	if (!debugMetrics.enabled || debugMetrics.overlay) return;
-	const overlay = document.createElement("div");
-	overlay.style.position = "fixed";
-	overlay.style.top = "8px";
-	overlay.style.right = "8px";
-	overlay.style.zIndex = "9999";
-	overlay.style.padding = "6px 8px";
-	overlay.style.background = "rgba(0, 0, 0, 0.55)";
-	overlay.style.color = "#9efc9e";
-	overlay.style.font = "12px/1.3 monospace";
-	overlay.style.border = "1px solid rgba(255, 255, 255, 0.2)";
-	overlay.style.borderRadius = "4px";
-	overlay.textContent = "FPS: -- | Stars: -- | Sparks: --";
-	document.body.appendChild(overlay);
-	debugMetrics.overlay = overlay;
-	debugMetrics.lastTime = performance.now();
-}
-
-function updatePerfTuning() {
-	if (!perfTuning.enabled) return;
-	if (!perfTuning.lastTime) {
-		perfTuning.lastTime = performance.now();
-	}
-	perfTuning.frameCount++;
-	const now = performance.now();
-	const elapsed = now - perfTuning.lastTime;
-	if (elapsed < perfTuning.sampleMs) return;
-
-	const fps = (perfTuning.frameCount * 1000) / elapsed;
-	perfTuning.lastFps = fps;
-	perfTuning.frameCount = 0;
-	perfTuning.lastTime = now;
-
-	if (fps < perfTuning.targetFps - 5) {
-		perfTuning.scale = Math.max(perfTuning.minScale, perfTuning.scale - 0.05);
-	} else if (fps > perfTuning.targetFps + 5) {
-		perfTuning.scale = Math.min(perfTuning.maxScale, perfTuning.scale + 0.02);
-	}
-}
 
 const audioUnlockState = {
 	unlocked: false,
@@ -716,13 +658,6 @@ function randomColor(options) {
 
 	lastColor = color;
 	return color;
-}
-
-// 随机获取一段文字
-function randomWord() {
-	if (randomWords.length === 0) return "";
-	if (randomWords.length === 1) return randomWords[0];
-	return randomWords[(Math.random() * randomWords.length) | 0];
 }
 
 function whiteOrGold() {
@@ -1879,27 +1814,6 @@ function createParticleArc(start, arcLength, count, randomness, particleFactory)
 	}
 }
 
-//获取字体点阵信息
-function getWordDots(word) {
-	if (!word) return null;
-	//随机字体大小 60~130
-	let fontSize = Math.floor(Math.random() * 70 + 60);
-	fontSize = Math.round(fontSize / WORD_FONT_STEP) * WORD_FONT_STEP;
-	const cacheKey = `${word}|${fontSize}`;
-	if (wordDotsCache.has(cacheKey)) {
-		return wordDotsCache.get(cacheKey);
-	}
-
-	const res = MyMath.literalLattice(word, 3, "bold sans-serif", fontSize + "px");
-	wordDotsCache.set(cacheKey, res);
-	if (wordDotsCache.size > WORD_DOTS_CACHE_MAX) {
-		const oldestKey = wordDotsCache.keys().next().value;
-		wordDotsCache.delete(oldestKey);
-	}
-
-	return res;
-}
-
 /**
  * 用于创建球形粒子爆发的辅助对象。
  *
@@ -2608,179 +2522,6 @@ const Spark = {
 	},
 };
 
-//音效管理器
-const soundManager = {
-	baseURL: "./audio/",
-	ctx: new (window.AudioContext || window.webkitAudioContext)(),
-	_preloadPromise: null,
-	sources: {
-		lift: {
-			volume: 1,
-			playbackRateMin: 0.85,
-			playbackRateMax: 0.95,
-			fileNames: ["lift1.mp3", "lift2.mp3", "lift3.mp3"],
-		},
-		burst: {
-			volume: 1,
-			playbackRateMin: 0.8,
-			playbackRateMax: 0.9,
-			fileNames: ["burst1.mp3", "burst2.mp3"],
-		},
-		burstSmall: {
-			volume: 0.25,
-			playbackRateMin: 0.8,
-			playbackRateMax: 1,
-			fileNames: ["burst-sm-1.mp3", "burst-sm-2.mp3"],
-		},
-		crackle: {
-			volume: 0.2,
-			playbackRateMin: 1,
-			playbackRateMax: 1,
-			fileNames: ["crackle1.mp3"],
-		},
-		crackleSmall: {
-			volume: 0.3,
-			playbackRateMin: 1,
-			playbackRateMax: 1,
-			fileNames: ["crackle-sm-1.mp3"],
-		},
-	},
-
-	preload() {
-		const allFilePromises = [];
-
-		function checkStatus(response) {
-			if (response.status >= 200 && response.status < 300) {
-				return response;
-			}
-			const customError = new Error(response.statusText);
-			customError.response = response;
-			throw customError;
-		}
-
-		const types = Object.keys(this.sources);
-		types.forEach((type) => {
-			const source = this.sources[type];
-			const { fileNames } = source;
-			const filePromises = [];
-			fileNames.forEach((fileName) => {
-				const fileURL = this.baseURL + fileName;
-				// Promise will resolve with decoded audio buffer.
-				const promise = fetch(fileURL)
-					.then(checkStatus)
-					.then((response) => response.arrayBuffer())
-					.then(
-						(data) =>
-							new Promise((resolve) => {
-								this.ctx.decodeAudioData(data, resolve);
-							})
-					);
-
-				filePromises.push(promise);
-				allFilePromises.push(promise);
-			});
-
-			Promise.all(filePromises).then((buffers) => {
-				source.buffers = buffers;
-			});
-		});
-
-		return Promise.all(allFilePromises);
-	},
-
-	ensurePreloaded() {
-		if (this._preloadPromise) return this._preloadPromise;
-		this._preloadPromise = this.preload().catch((error) => {
-			console.log("音效预加载失败");
-			return Promise.reject(error);
-		});
-		return this._preloadPromise;
-	},
-
-	pauseAll() {
-		this.ctx.suspend();
-	},
-
-	resumeAll() {
-		// Play a sound with no volume for iOS. This 'unlocks' the audio context when the user first enables sound.
-		this.playSound("lift", 0);
-		// Chrome mobile requires interaction before starting audio context.
-		// The sound toggle button is triggered on 'touchstart', which doesn't seem to count as a full
-		// interaction to Chrome. I guess it needs a click? At any rate if the first thing the user does
-		// is enable audio, it doesn't work. Using a setTimeout allows the first interaction to be registered.
-		// Perhaps a better solution is to track whether the user has interacted, and if not but they try enabling
-		// sound, show a tooltip that they should tap again to enable sound.
-		setTimeout(() => {
-			this.ctx.resume();
-		}, 250);
-	},
-
-	// Private property used to throttle small burst sounds.
-	_lastSmallBurstTime: 0,
-
-	/**
-	 * Play a sound of `type`. Will randomly pick a file associated with type, and play it at the specified volume
-	 * and play speed, with a bit of random variance in play speed. This is all based on `sources` config.
-	 *
-	 * @param  {string} type - The type of sound to play.
-	 * @param  {?number} scale=1 - Value between 0 and 1 (values outside range will be clamped). Scales less than one
-	 *                             descrease volume and increase playback speed. This is because large explosions are
-	 *                             louder, deeper, and reverberate longer than small explosions.
-	 *                             Note that a scale of 0 will mute the sound.
-	 */
-	playSound(type, scale = 1) {
-		// Ensure `scale` is within valid range.
-		scale = MyMath.clamp(scale, 0, 1);
-
-		// Disallow starting new sounds if sound is disabled, app is running in slow motion, or paused.
-		// Slow motion check has some wiggle room in case user doesn't finish dragging the speed bar
-		// *all* the way back.
-		if (!canPlaySoundSelector() || simSpeed < 0.95) {
-			return;
-		}
-
-		// Throttle small bursts, since floral/falling leaves shells have a lot of them.
-		if (type === "burstSmall") {
-			const now = Date.now();
-			const scale = perfTuning.enabled ? Math.max(perfTuning.scale, 0.5) : 1;
-			const minInterval = Math.round(20 / scale);
-			if (now - this._lastSmallBurstTime < minInterval) {
-				return;
-			}
-			this._lastSmallBurstTime = now;
-		}
-
-		const source = this.sources[type];
-
-		if (!source) {
-			throw new Error(`Sound of type "${type}" doesn't exist.`);
-		}
-		if (!source.buffers || !source.buffers.length) {
-			this.ensurePreloaded();
-			return;
-		}
-
-		const initialVolume = source.volume;
-		const initialPlaybackRate = MyMath.random(source.playbackRateMin, source.playbackRateMax);
-
-		// Volume descreases with scale.
-		const scaledVolume = initialVolume * scale;
-		// Playback rate increases with scale. For this, we map the scale of 0-1 to a scale of 2-1.
-		// So at a scale of 1, sound plays normally, but as scale approaches 0 speed approaches double.
-		const scaledPlaybackRate = initialPlaybackRate * (2 - scale);
-
-		const gainNode = this.ctx.createGain();
-		gainNode.gain.value = scaledVolume;
-
-		const buffer = MyMath.randomChoice(source.buffers);
-		const bufferSource = this.ctx.createBufferSource();
-		bufferSource.playbackRate.value = scaledPlaybackRate;
-		bufferSource.buffer = buffer;
-		bufferSource.connect(gainNode);
-		gainNode.connect(this.ctx.destination);
-		bufferSource.start(0);
-	},
-};
 
 // imageTemplateManager.preload().then(() => {
 //     if(imageTemplateManager.sources.length>0){

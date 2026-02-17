@@ -391,11 +391,108 @@ export function createShellSystem({
 							star.sparkTimer = Math.random() * star.sparkFreq;
 						}
 					});
+				} else if (this.heart) {
+					// 心形烟花效果
+					const points = Math.floor(this.starCount);
+					for (let i = 0; i < points; i++) {
+						const t = (i / points) * PI_2;
+						// 心形参数方程
+						const heartX = 16 * Math.pow(Math.sin(t), 3);
+						const heartY = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+						const scale = this.spreadSize / 500;
+						const angle = myMath.pointAngle(0, 0, heartX * scale, heartY * scale);
+						const distance = myMath.pointDist(0, 0, heartX * scale, heartY * scale);
+						const speedMult = distance / this.spreadSize * 1.5;
+						starFactory(angle, speedMult);
+					}
+				} else if (this.spiral) {
+					// 螺旋烟花效果
+					const arms = 3;
+					const pointsPerArm = Math.floor(this.starCount / arms);
+					for (let arm = 0; arm < arms; arm++) {
+						const armAngle = (arm / arms) * PI_2;
+						for (let i = 0; i < pointsPerArm; i++) {
+							const progress = i / pointsPerArm;
+							const angle = armAngle + progress * PI_2 * 1.5;
+							const speedMult = 0.4 + progress * 0.8;
+							starFactory(angle, speedMult);
+						}
+					}
+				} else if (this.starShape) {
+					// 五角星烟花效果
+					const starPoints = 5;
+					const pointsPerEdge = Math.floor(this.starCount / (starPoints * 2));
+					for (let i = 0; i < starPoints * 2; i++) {
+						const isOuter = i % 2 === 0;
+						const angleStep = PI_2 / (starPoints * 2);
+						const baseAngle = i * angleStep - Math.PI / 2;
+						const radius = isOuter ? 1 : 0.4;
+						
+						for (let j = 0; j < pointsPerEdge; j++) {
+							const progress = j / pointsPerEdge;
+							const nextAngle = baseAngle + angleStep;
+							const angle = baseAngle + (nextAngle - baseAngle) * progress;
+							const nextRadius = i % 2 === 0 ? 0.4 : 1;
+							const speedMult = radius + (nextRadius - radius) * progress;
+							starFactory(angle, speedMult);
+						}
+					}
+				} else if (this.fountain) {
+					// 喷泉烟花效果（向上集中发射）
+					const points = Math.floor(this.starCount);
+					for (let i = 0; i < points; i++) {
+						const angle = Math.PI + (Math.random() - 0.5) * 0.6; // 向上，带小范围随机
+						const speedMult = 0.6 + Math.random() * 0.8;
+						starFactory(angle, speedMult);
+					}
+				} else if (this.wave) {
+					// 波浪烟花效果
+					const waves = 4;
+					const pointsPerWave = Math.floor(this.starCount / waves);
+					for (let w = 0; w < waves; w++) {
+						const waveAngle = (w / waves) * PI_2;
+						for (let i = 0; i < pointsPerWave; i++) {
+							const progress = i / pointsPerWave;
+							const waveOffset = Math.sin(progress * Math.PI * 3) * 0.3;
+							const angle = waveAngle + waveOffset;
+							const speedMult = 0.7 + waveOffset * 0.3;
+							starFactory(angle, speedMult);
+						}
+					}
+				} else if (this.kamuro) {
+					// 冠菊效果（较慢的速度，更长的拖尾）
+					createBurst(this.starCount, (angle, speedMult) => {
+						starFactory(angle, speedMult * 0.7); // 降低速度以产生下垂效果
+					});
 				} else {
 					createBurst(this.starCount, starFactory);
 				}
 			} else if (Array.isArray(this.color)) {
-				if (Math.random() < 0.5) {
+				if (this.doubleRing) {
+					// 双环烟花效果
+					const ringStartAngle = Math.random() * Math.PI;
+					const ringSquash = Math.pow(Math.random(), 2) * 0.85 + 0.15;
+					
+					// 外环
+					color = this.color[0];
+					createParticleArc(0, PI_2, this.starCount, 0, (angle) => {
+						const initSpeedX = Math.sin(angle) * speed * ringSquash;
+						const initSpeedY = Math.cos(angle) * speed;
+						const newSpeed = myMath.pointDist(0, 0, initSpeedX, initSpeedY);
+						const newAngle = myMath.pointAngle(0, 0, initSpeedX, initSpeedY) + ringStartAngle;
+						starFactory(newAngle, newSpeed / speed);
+					});
+					
+					// 内环（缩小70%）
+					color = this.color[1];
+					createParticleArc(0, PI_2, this.starCount * 0.7, 0, (angle) => {
+						const initSpeedX = Math.sin(angle) * speed * ringSquash * 0.7;
+						const initSpeedY = Math.cos(angle) * speed * 0.7;
+						const newSpeed = myMath.pointDist(0, 0, initSpeedX, initSpeedY);
+						const newAngle = myMath.pointAngle(0, 0, initSpeedX, initSpeedY) + ringStartAngle;
+						starFactory(newAngle, newSpeed / speed);
+					});
+				} else if (Math.random() < 0.5) {
 					const start = Math.random() * Math.PI;
 					const start2 = start + Math.PI;
 					const arc = Math.PI;
@@ -603,6 +700,116 @@ export function createShellSystem({
 		color: INVISIBLE,
 	});
 
+	// 新烟花效果：心形烟花
+	const heartShell = (size = 1) => {
+		const color = randomColor({ limitWhite: true });
+		return {
+			shellSize: size,
+			spreadSize: 300 + size * 100,
+			starLife: 1200 + size * 200,
+			starDensity: 1.2,
+			color,
+			heart: true,
+			glitter: Math.random() < 0.5 ? "light" : "",
+			glitterColor: COLOR.White,
+			pistil: Math.random() < 0.3,
+			pistilColor: makePistilColor(color),
+		};
+	};
+
+	// 新烟花效果：螺旋烟花
+	const spiralShell = (size = 1) => {
+		const color = Math.random() < 0.7 ? randomColor() : [randomColor(), randomColor({ notSame: true })];
+		return {
+			shellSize: size,
+			spreadSize: 300 + size * 100,
+			starLife: 1400 + size * 200,
+			starDensity: 1.0,
+			color,
+			spiral: true,
+			glitter: "medium",
+			glitterColor: whiteOrGold(),
+		};
+	};
+
+	// 新烟花效果：冠菊烟花（Kamuro）
+	const kamuroShell = (size = 1) => {
+		const color = randomColor();
+		return {
+			shellSize: size,
+			spreadSize: 280 + size * 80,
+			starDensity: 0.8,
+			starLife: 2000 + size * 300,
+			glitter: "thick",
+			glitterColor: COLOR.Gold,
+			color,
+			kamuro: true,
+		};
+	};
+
+	// 新烟花效果：五角星烟花
+	const starShell = (size = 1) => {
+		const color = randomColor({ limitWhite: true });
+		return {
+			shellSize: size,
+			spreadSize: 300 + size * 100,
+			starLife: 1100 + size * 200,
+			starDensity: 1.1,
+			color,
+			starShape: true,
+			glitter: "light",
+			glitterColor: COLOR.White,
+			pistil: true,
+			pistilColor: makePistilColor(color),
+		};
+	};
+
+	// 新烟花效果：双环烟花
+	const doubleRingShell = (size = 1) => {
+		const color = randomColor();
+		const color2 = randomColor({ notColor: color });
+		return {
+			shellSize: size,
+			doubleRing: true,
+			color: [color, color2],
+			spreadSize: 300 + size * 100,
+			starLife: 900 + size * 200,
+			starCount: 2.2 * PI_2 * (size + 1),
+			glitter: "light",
+			glitterColor: COLOR.White,
+		};
+	};
+
+	// 新烟花效果：喷泉烟花
+	const fountainShell = (size = 1) => {
+		const color = randomColor();
+		return {
+			shellSize: size,
+			spreadSize: 200 + size * 80,
+			starDensity: 1.5,
+			starLife: 1800 + size * 300,
+			color,
+			fountain: true,
+			glitter: "heavy",
+			glitterColor: whiteOrGold(),
+		};
+	};
+
+	// 新烟花效果：波浪烟花
+	const waveShell = (size = 1) => {
+		const color = Math.random() < 0.6 ? randomColor() : [randomColor(), randomColor({ notSame: true })];
+		return {
+			shellSize: size,
+			spreadSize: 300 + size * 100,
+			starLife: 1200 + size * 200,
+			starDensity: 1.0,
+			color,
+			wave: true,
+			glitter: Math.random() < 0.4 ? "medium" : "",
+			glitterColor: COLOR.White,
+		};
+	};
+
 	const crackleShell = (size = 1) => {
 		const { isLowQuality } = getQuality();
 		const color = Math.random() < 0.75 ? COLOR.Gold : randomColor();
@@ -666,13 +873,20 @@ export function createShellSystem({
 		Crackle: crackleShell,
 		Crossette: crossetteShell,
 		Crysanthemum: crysanthemumShell,
+		"Double Ring": doubleRingShell,
 		"Falling Leaves": fallingLeavesShell,
 		Floral: floralShell,
+		Fountain: fountainShell,
 		Ghost: ghostShell,
+		Heart: heartShell,
 		"Horse Tail": horsetailShell,
+		Kamuro: kamuroShell,
 		Palm: palmShell,
 		Ring: ringShell,
+		Spiral: spiralShell,
+		Star: starShell,
 		Strobe: strobeShell,
+		Wave: waveShell,
 		Willow: willowShell,
 	};
 

@@ -13,6 +13,30 @@ A lightweight, no-build fireworks simulator built with Canvas and WebAudio. It r
 - ⚡ High-performance canvas rendering
 - 🎮 Interactive controls and auto-launch mode
 
+### Available Firework Types
+
+**Classic Effects:**
+- 🌼 Crysanthemum - Traditional burst pattern
+- 🌴 Palm - Long-trailing palm effect
+- ⭕ Ring - Perfect circular ring
+- 💥 Crackle - Crackling sparkle effect
+- ✨ Strobe - Flash and strobe patterns
+- 👻 Ghost - Invisible burst with trailing colors
+- 🌿 Willow - Drooping willow branches
+- 🐴 Horse Tail - Thick trailing tails
+- ✖️ Crossette - Splitting crossette pattern
+- 🌸 Floral - Flower bloom effect
+- 🍂 Falling Leaves - Gentle falling particles
+
+**New Effects:**
+- 💝 Heart - Romantic heart-shaped pattern
+- 🌀 Spiral - Rotating spiral arms
+- 👑 Kamuro - Japanese long-trailing effect
+- ⭐ Star - Five-pointed star shape
+- ⭕⭕ Double Ring - Dual concentric rings
+- ⛲ Fountain - Upward fountain spray
+- 🌊 Wave - Undulating wave pattern
+
 ## Run Locally
 
 Open `index.html` in a local server (recommended) or directly in a browser.

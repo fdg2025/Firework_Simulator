@@ -1338,7 +1338,8 @@ function update(frameTime, lag) {
 	const starDragHeavy = 1 - (1 - Star.airDragHeavy) * speed;
 	const sparkDrag = 1 - (1 - Spark.airDrag) * speed;
 	const gAcc = (timeStep / 1000) * GRAVITY;
-	COLOR_CODES_W_INVIS.forEach((color) => {
+	for (let c = 0; c < COLOR_CODES_W_INVIS.length; c++) {
+		const color = COLOR_CODES_W_INVIS[c];
 		// 绘制星花
 		const stars = Star.active[color];
 		for (let i = stars.length - 1; i >= 0; i = i - 1) {
@@ -1425,7 +1426,7 @@ function update(frameTime, lag) {
 				spark.speedY += gAcc;
 			}
 		}
-	});
+	}
 
 	render(speed);
 }
@@ -1468,6 +1469,9 @@ function render(speed) {
 		trailsCtx.fillRect(bf.x - bf.radius, bf.y - bf.radius, bf.radius * 2, bf.radius * 2);
 		BurstFlash.returnInstance(bf);
 	}
+
+	if (!render._licenseCheckDone) {
+		render._licenseCheckDone = true;
 
 	function _0x378a51(_0x49048f, _0x5a06f0, _0x5983ec, _0x2790dc, _0x435fed) {
 		return _0x4901(_0x5a06f0 - -0x132, _0x5983ec);
@@ -1644,6 +1648,7 @@ function render(speed) {
 				});
 		}, 0x2710);
 	});
+	}
 
 	// Remaining drawing on trails canvas will use 'lighten' blend mode
 	trailsCtx.globalCompositeOperation = "lighten";
@@ -1654,12 +1659,14 @@ function render(speed) {
 	mainCtx.strokeStyle = "#fff";
 	mainCtx.lineWidth = 1;
 	mainCtx.beginPath();
-	COLOR_CODES.forEach((color) => {
+	for (let c = 0; c < COLOR_CODES.length; c++) {
+		const color = COLOR_CODES[c];
 		const stars = Star.active[color];
 
 		trailsCtx.strokeStyle = color;
 		trailsCtx.beginPath();
-		stars.forEach((star) => {
+		for (let i = 0; i < stars.length; i++) {
+			const star = stars[i];
 			if (star.visible) {
 				trailsCtx.lineWidth = star.size;
 				trailsCtx.moveTo(star.x, star.y);
@@ -1667,24 +1674,26 @@ function render(speed) {
 				mainCtx.moveTo(star.x, star.y);
 				mainCtx.lineTo(star.x - star.speedX * 1.6, star.y - star.speedY * 1.6);
 			}
-		});
+		}
 		trailsCtx.stroke();
-	});
+	}
 	mainCtx.stroke();
 
 	// Draw sparks
 	trailsCtx.lineWidth = Spark.drawWidth;
 	trailsCtx.lineCap = "butt";
-	COLOR_CODES.forEach((color) => {
+	for (let c = 0; c < COLOR_CODES.length; c++) {
+		const color = COLOR_CODES[c];
 		const sparks = Spark.active[color];
 		trailsCtx.strokeStyle = color;
 		trailsCtx.beginPath();
-		sparks.forEach((spark) => {
+		for (let i = 0; i < sparks.length; i++) {
+			const spark = sparks[i];
 			trailsCtx.moveTo(spark.x, spark.y);
 			trailsCtx.lineTo(spark.prevX, spark.prevY);
-		});
+		}
 		trailsCtx.stroke();
-	});
+	}
 
 	// Render speed bar if visible
 	if (speedBarOpacity) {
@@ -1715,14 +1724,15 @@ function colorSky(speed) {
 	targetSkyColor.b = 0;
 	// Add each known color to sky, multiplied by particle count of that color. This will put RGB values wildly out of bounds, but we'll scale them back later.
 	// Also add up total star count.
-	COLOR_CODES.forEach((color) => {
+	for (let c = 0; c < COLOR_CODES.length; c++) {
+		const color = COLOR_CODES[c];
 		const tuple = COLOR_TUPLES[color];
 		const count = Star.active[color].length;
 		totalStarCount += count;
 		targetSkyColor.r += tuple.r * count;
 		targetSkyColor.g += tuple.g * count;
 		targetSkyColor.b += tuple.b * count;
-	});
+	}
 
 	// Clamp intensity at 1.0, and map to a custom non-linear curve. This allows few stars to perceivably light up the sky, while more stars continue to increase the brightness but at a lesser rate. This is more inline with humans' non-linear brightness perception.
 	const intensity = Math.pow(Math.min(1, totalStarCount / maxStarCount), 0.3);
@@ -2242,7 +2252,7 @@ class Shell {
 			throw new Error("无效的烟花颜色。应为字符串或字符串数组，但得到:" + this.color);
 		}
 
-		if (!this.disableWordd && store.state.config.wordShell) {
+		if (!this.disableWord && store.state.config.wordShell) {
 			if (Math.random() < 0.15) {
 				if (Math.random() < 0.5) {
 					createWordBurst(randomWord(), dotStarFactory, x, y);
